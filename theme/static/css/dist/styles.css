@@ -797,10 +797,6 @@ select {
   height: 100%;
 }
 
-.h-screen {
-  height: 100vh;
-}
-
 .w-1 {
   width: 0.25rem;
 }
@@ -1013,18 +1009,9 @@ select {
   vertical-align: middle;
 }
 
-.font-serif {
-  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-}
-
 .text-3xl {
   font-size: 1.875rem;
   line-height: 2.25rem;
-}
-
-.text-5xl {
-  font-size: 3rem;
-  line-height: 1;
 }
 
 .text-lg {
@@ -1055,14 +1042,6 @@ select {
 
 .leading-6 {
   line-height: 1.5rem;
-}
-
-.leading-normal {
-  line-height: 1.5;
-}
-
-.tracking-normal {
-  letter-spacing: 0em;
 }
 
 .text-blue-500 {

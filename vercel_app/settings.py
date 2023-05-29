@@ -35,7 +35,6 @@ INTERNAL_IPS = [
 INSTALLED_APPS = [
     'tailwind',
     'theme',
-    'theme2',
     'django_browser_reload',
     'encuestas.apps.EncuestasConfig',
     'django.contrib.admin',
