@@ -32,7 +32,7 @@
                                                 
                                                 <div>
                                                     <h2 class="font-medium text-gray-800  ">Llamada {{llamada.id}} </h2>
-                                                    <p class="text-sm font-normal text-gray-600 ">{{ llamada.duration }} segundos </p>
+                                                    <p class="text-sm font-normal text-gray-600 ">{{ llamada.duracion }} segundos </p>
                                                 </div>
                                             </div>
                                         </div>
@@ -55,16 +55,15 @@
             </div>
         </div>
     </section>
-    <ul class="columns-2 max-w-xl">
-        <h3 class="text-lg font-bold mt-5">Preguntas</h3>
+    <ul class=" max-w-xl">
+        <h3 class="text-lg font-bold mt-5">Preguntas Realizadas</h3>
         {% for pregunta in encuesta.pregunta.all %}
-        <li>{{ pregunta.pregunta}}</li>
+            <li>{{ pregunta.pregunta }}</li>
         {% endfor %}
         <h3 class="text-lg font-bold mt-5">Respuestas del Cliente</h3>
         {% for respuesta in llamada.respuestasDeEncuesta.all %}
-        <li>{{ respuesta.respuestasDeEncuesta }}</li>
+            <li>{{ respuesta.respuestasDeEncuesta.getDescripcionRta }} ({{ respuesta.pregunta.getDescripcion }})</li>
         {% endfor %}
-    </ul>
     <div class="mt-10 flex items-center justify-start gap-x-6">
         <a href="javascript:window.print()" class="rounded-md bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Imprimir</a>
         <a href="?export_csv=1" class="text-sm font-semibold leading-6 text-gray-900 transition hover:underline hover:text-indigo-900">Exportar en CSV <span aria-hidden="true">↓</span></a>

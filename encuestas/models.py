@@ -2,29 +2,31 @@ from django.db import models
 from datetime import datetime
 
 class Llamada(models.Model):
-    duration = models.IntegerField(default = 0)
+    duracion = models.IntegerField(default = 0)
     descripcionOperador = models.CharField(max_length = 200, default = "Sin descripcion")
     detalleAccionRequerida = models.CharField(max_length = 200, default = "Sin detalle")
     encuestaEnviada = models.BooleanField(default = False)
     observacionAuditor = models.CharField(max_length=200, default = "Sin observacion")
-    respuestasDeEncuesta = models.ManyToManyField("RespuestaDeCliente", related_name = 'llamada', default=None)
+    respuestasDeEncuesta = models.ManyToManyField("RespuestaDeCliente", related_name = 'llamada', default=None, blank=True)
     cliente = models.ForeignKey("Cliente", on_delete = models.CASCADE, related_name = 'llamada', default=None)
     cambioEstado = models.ForeignKey("CambioEstado", on_delete=models.CASCADE, related_name ='llamada', default=None)
 
     def __str__(self):
-        return f"Llamada: {self.duration} segundos"
+        return f"Llamada: {self.duracion} segundos"
     def esDePeriodo(start_date, end_date):
         llamadas = Llamada.objects.filter(
-        cambioEstado__initial_datetime__range=[start_date, end_date],
+        cambioEstado__fechaHoraInicio__range=[start_date, end_date],
         )
         return llamadas
     def determinarUltimoEstado(self):
-        ultimo_cambio_estado = CambioEstado.objects.filter(llamada=self).order_by('-initial_datetime').first()
+        ultimo_cambio_estado = CambioEstado.objects.filter(llamada=self).order_by('-fechaHoraInicio').first()
         if ultimo_cambio_estado:
             return ultimo_cambio_estado.estado
         else:
             return None
-    
+    def calcularDuracion(self):
+        return self.duracion
+
 class Cliente(models.Model):
     dni = models.CharField(max_length=10)
     nombreCompleto = models.CharField(max_length=100)
@@ -42,9 +44,17 @@ class Cliente(models.Model):
 class RespuestaDeCliente(models.Model):
     respuestasDeEncuesta = models.ForeignKey("RespuestaPosible", on_delete=models.CASCADE, related_name='respuestaDeCliente', default=None)
     fechaEncuesta = models.DateField()
+    pregunta = models.ForeignKey("Pregunta", on_delete=models.CASCADE, related_name='respuestasDeCliente', default=None)
+    encuesta = models.ForeignKey("Encuesta", on_delete=models.CASCADE, related_name='respuestasDeCliente', default=None)
 
     def __str__(self):
         return f"{self.respuestasDeEncuesta}"
+
+    def get_pregunta_descripcion(self):
+        return self.pregunta.pregunta
+
+    def get_encuesta_descripcion(self):
+        return self.encuesta.descripcion
 
 class Estado(models.Model):
     nombre = models.CharField(max_length=50, default="Sin nombre")
@@ -61,10 +71,10 @@ class Estado(models.Model):
         return self.nombre
 
 class CambioEstado(models.Model):
-    initial_datetime = models.DateTimeField(default=datetime.now)
+    fechaHoraInicio = models.DateTimeField(default=datetime.now)
     estado = models.ForeignKey(Estado, on_delete=models.CASCADE, related_name='cambioEstados', default=1)
     def __str__(self):
-        return f"CambioEstado: {self.initial_datetime}"
+        return f"CambioEstado: {self.fechaHoraInicio}"
     def getEstado(self):
         return self.estado
     

@@ -9,7 +9,7 @@ def index(request):
 
     llamadas = None
     if start_date and end_date:
-        llamadas = Llamada.esDePeriodo(start_date, end_date)
+        llamadas = Llamada.esDePeriodo(start_date, end_date).exclude(respuestasDeEncuesta=None)
     context = {
         'llamadas': llamadas,
     }
@@ -19,17 +19,24 @@ def index(request):
 def detail(request, pk):
     llamada_instance = get_object_or_404(Llamada, pk=pk)
     encuesta_instance = get_object_or_404(Encuesta, pk=pk)
-      # Replace pk=1 with your desired filter criteria
+    
     if 'export_csv' in request.GET:
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="llamada.csv"'
 
-        # Create a CSV writer
         writer = csv.writer(response)
-        writer.writerow(['Duration', 'Cliente', 'Estado'])
+        writer.writerow(['duracion', 'Cliente', 'Estado', 'Respuestas de Encuesta', 'Pregunta'])
 
-        # Write the llamada data to the CSV file
-        writer.writerow([llamada_instance.duration, llamada_instance.cliente, llamada_instance.determinarUltimoEstado()])
+        respuestas = llamada_instance.respuestasDeEncuesta.all()
+        preguntas = encuesta_instance.pregunta.all()
+        for respuesta, pregunta in zip(respuestas, preguntas):
+            writer.writerow([
+                llamada_instance.duracion,
+                llamada_instance.cliente,
+                llamada_instance.determinarUltimoEstado(),
+                respuesta.respuestasDeEncuesta.getDescripcionRta(),
+                pregunta.pregunta
+            ])
 
         return response
 
@@ -39,18 +46,3 @@ def detail(request, pk):
     }
 
     return render(request, 'encuestas/detail.html', context)
-
-
-
-def some_view(request):
-    # Create the HttpResponse object with the appropriate CSV header.
-    response = HttpResponse(
-        content_type="text/csv",
-        headers={"Content-Disposition": 'attachment; filename="somefilename.csv"'},
-    )
-
-    writer = csv.writer(response)
-    writer.writerow(["First row", "Foo", "Bar", "Baz"])
-    writer.writerow(["Second row", "A", "B", "C", '"Testing"', "Here's a quote"])
-
-    return response
