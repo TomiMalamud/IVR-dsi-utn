@@ -9,14 +9,13 @@ class Llamada(models.Model):
     observacionAuditor = models.CharField(max_length=200, default = "Sin observacion")
     respuestasDeEncuesta = models.ManyToManyField("RespuestaDeCliente", related_name = 'llamada', default=None, blank=True)
     cliente = models.ForeignKey("Cliente", on_delete = models.CASCADE, related_name = 'llamada', default=None)
-    cambioEstado = models.ForeignKey("CambioEstado", on_delete=models.CASCADE, related_name ='llamada', default=None)
 
     def __str__(self):
         return f"Llamada: {self.duracion} segundos"
     def esDePeriodo(start_date, end_date):
         llamadas = Llamada.objects.filter(
         cambioEstado__fechaHoraInicio__range=[start_date, end_date],
-        )
+        ).distinct()
         return llamadas
     def determinarUltimoEstado(self):
         ultimo_cambio_estado = CambioEstado.objects.filter(llamada=self).order_by('-fechaHoraInicio').first()
@@ -25,7 +24,16 @@ class Llamada(models.Model):
         else:
             return None
     def calcularDuracion(self):
-        return self.duracion
+        cambio_iniciada = CambioEstado.objects.filter(llamada=self, estado__nombre='Iniciada').first()
+        cambio_finalizada = CambioEstado.objects.filter(llamada=self, estado__nombre='Finalizada').first()
+
+        if cambio_iniciada and cambio_finalizada:
+            duracion = cambio_finalizada.fechaHoraInicio - cambio_iniciada.fechaHoraInicio
+            self.duracion = int(duracion.total_seconds())
+        else:
+            self.duracion = 0
+    
+        self.save()
 
 class Cliente(models.Model):
     dni = models.CharField(max_length=10)
@@ -72,7 +80,8 @@ class Estado(models.Model):
 
 class CambioEstado(models.Model):
     fechaHoraInicio = models.DateTimeField(default=datetime.now)
-    estado = models.ForeignKey(Estado, on_delete=models.CASCADE, related_name='cambioEstados', default=1)
+    estado = models.ForeignKey(Estado, on_delete=models.CASCADE, related_name='cambioEstado', default=1)
+    llamada = models.ForeignKey("Llamada", on_delete=models.CASCADE, related_name='cambioEstado', default=None)
     def __str__(self):
         return f"CambioEstado: {self.fechaHoraInicio}"
     def getEstado(self):

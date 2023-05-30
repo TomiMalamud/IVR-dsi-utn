@@ -6,19 +6,22 @@ from django.http import HttpResponse
 def index(request):
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
-
+    encuesta = Encuesta.objects.all()
     llamadas = None
     if start_date and end_date:
         llamadas = Llamada.esDePeriodo(start_date, end_date).exclude(respuestasDeEncuesta=None)
+        for llamada in llamadas:
+            llamada.calcularDuracion()
     context = {
         'llamadas': llamadas,
+        'encuesta': encuesta,
     }
     return render(request, 'encuestas/index.html', context)
 
 
 def detail(request, pk):
     llamada_instance = get_object_or_404(Llamada, pk=pk)
-    encuesta_instance = get_object_or_404(Encuesta, pk=pk)
+    encuesta_instance = get_object_or_404(Encuesta, pk=1)
     
     if 'export_csv' in request.GET:
         response = HttpResponse(content_type='text/csv')
